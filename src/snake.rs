@@ -1,8 +1,10 @@
-use std::collections::LinkedList;
+// use std::collections::LinkedList;
+
+use crate::constants::GRID_SIZE;
 
 pub struct Point {
-    pub x: u16,
-    pub y: u16,
+    pub x: u8,
+    pub y: u8,
 }
 
 #[derive(Copy, Clone)]
@@ -16,7 +18,8 @@ enum Direction {
 pub struct Snake {
     pub head: Point,
     direction: Direction,
-    body: LinkedList<Point>,
+    pub velocity: f32,
+    // body: LinkedList<Point>,
 }
 
 impl Snake {
@@ -36,22 +39,42 @@ impl Snake {
         self.direction = Direction::Up
     }
 
-    pub fn move_snake(&mut self) {
+    pub fn move_snake(&mut self) -> bool {
         match self.direction {
             Direction::Right => {
-                self.head.x += 1;
+                if self.head.x == GRID_SIZE - 1 {
+                    false
+                } else {
+                    self.head.x += 1;
+                    true
+                }
             }
 
             Direction::Left => {
-                self.head.x -= 1;
+                if self.head.x == 0 {
+                    false
+                } else {
+                    self.head.x -= 1;
+                    true
+                }
             }
 
             Direction::Down => {
-                self.head.y += 1;
+                if self.head.y == GRID_SIZE - 1 {
+                    false
+                } else {
+                    self.head.y += 1;
+                    true
+                }
             }
 
             Direction::Up => {
-                self.head.y -= 1;
+                if self.head.y == 0 {
+                    false
+                } else {
+                    self.head.y -= 1;
+                    true
+                }
             }
         }
     }
@@ -62,7 +85,8 @@ impl Default for Snake {
         Snake {
             head: Point { x: 0, y: 0 },
             direction: Direction::Right,
-            body: LinkedList::new(),
+            // body: LinkedList::new(),
+            velocity: 10.0,
         }
     }
 }

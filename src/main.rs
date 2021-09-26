@@ -4,55 +4,62 @@ mod window;
 
 use constants::*;
 use macroquad::prelude::*;
+use snake::*;
 use window::config;
-
-static GRID_SIZE: u8 = 30;
 
 #[macroquad::main(config)]
 async fn main() {
-    let mut snake = snake::Snake::default();
+    let mut snake = Snake::default();
+    let mut game_over = false;
     let mut last_time = get_time();
 
     loop {
-        let delta_time = get_time() - last_time;
+        if game_over {
+            clear_background(S_GREEN);
+            let game_over_text = "Game over. Press { SPACE } to restart.";
+            let measure = measure_text(game_over_text, None, 32, 1.0);
+            draw_text(
+                game_over_text,
+                (screen_width() - measure.width) / 2.0,
+                (screen_height() - measure.height) / 2.0,
+                32.0,
+                BLACK,
+            );
 
-        clear_background(S_GREEN);
+            if is_key_down(KeyCode::Space) {
+                snake = Snake::default();
+                game_over = false;
+            }
+            next_frame().await
+        } else {
+            let delta_time = get_time() - last_time;
 
-        if is_key_down(KeyCode::Right) {
-            snake.turn_right();
-        }
-        if is_key_down(KeyCode::Left) {
-            snake.turn_left();
-        }
-        if is_key_down(KeyCode::Down) {
-            snake.turn_down();
-        }
-        if is_key_down(KeyCode::Up) {
-            snake.turn_up();
-        }
+            clear_background(S_GREEN);
 
-        let time = format!("{}", delta_time);
-        draw_text(&time, 10.0, screen_height() - 100.0, 26.0, BLACK);
+            if is_key_down(KeyCode::Right) {
+                snake.turn_right();
+            }
+            if is_key_down(KeyCode::Left) {
+                snake.turn_left();
+            }
+            if is_key_down(KeyCode::Down) {
+                snake.turn_down();
+            }
+            if is_key_down(KeyCode::Up) {
+                snake.turn_up();
+            }
 
-        if delta_time > 1.0 {
-            last_time = get_time();
-            snake.move_snake();
+            if delta_time > (10.0 / (snake.velocity + 10.0)) as f64 {
+                last_time = get_time();
+                if !snake.move_snake() {
+                    game_over = true;
+                }
+            }
+
+            draw_snake(&snake);
+            next_frame().await
         }
-
-        draw_snake(&snake);
-        draw_debug();
-        next_frame().await
     }
-}
-
-fn draw_debug() {
-    let window_size = format!("Window size: {}, {}", screen_width(), screen_height());
-    let fps = format!("FPS: {}", get_fps());
-    let time = format!("{}", get_time());
-
-    draw_text(&time, 10.0, screen_height() - 70.0, 26.0, BLACK);
-    draw_text(&window_size, 10.0, screen_height() - 50.0, 26.0, BLACK);
-    draw_text(&fps, 10.0, screen_height() - 20.0, 26.0, BLACK);
 }
 
 fn draw_snake(snake: &snake::Snake) {
@@ -60,8 +67,8 @@ fn draw_snake(snake: &snake::Snake) {
     let pixel_height = screen_height() / GRID_SIZE as f32;
 
     draw_rectangle(
-        snake.head.x as f32 * 100.0,
-        snake.head.y as f32 * 100.0,
+        snake.head.x as f32 * pixel_width,
+        snake.head.y as f32 * pixel_height,
         pixel_width,
         pixel_height,
         BLACK,
